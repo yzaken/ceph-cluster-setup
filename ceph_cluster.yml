@@ -5,6 +5,7 @@ parameters:
  node_prefix_1: ceph
  network_1: ceph-orch
  ip_prefix_1: 192.168.100
+ ipv6_prefix_1: ''  # Example of a real IPv6 prefix: '2620:52:0:1304'
  netmask: 255.255.255.0
  numcpus: 1
  memory: 6144
@@ -12,14 +13,15 @@ parameters:
  notify: false
  admin_password: password
  network_interface_name: ens3
- bootstrap_server_as_ntp_source: false
+ network_interfacet_type: ipv4
+ bootstrap_server_as_ntp_source: false  # if set as true, the first node will act as an ntp server for the rest of the nodes
  container_cfg:
    engine:
      env:   # when you are behind vpn or similar env and require to pass through a proxy ,put your proxy configyuration
-       #- HTTP_PROXY: "http://example.net:8080"
-       #- HTTPS_PROXY: "http://example.net:8080"
-       #- http_proxy: "http://example.net:8080"
-       #- https_proxy: "http://example.net:8080"
+-       #- HTTP_PROXY: "http://example.net:8080"
+-       #- HTTPS_PROXY: "http://example.net:8080"
+-       #- http_proxy: "http://example.net:8080"
+-       #- https_proxy: "http://example.net:8080"
        - NO_PROXY: "localhost,127.0.0.1,{{ ip_prefix_1 }}.0/24"
  disks:
  - size: 100               # Disk 1 (OS)
@@ -42,6 +44,9 @@ parameters:
     gateway: {{ ip_prefix_1 }}.1
     mask: {{ netmask }}
     dns: {{ ip_prefix_1 }}.1
+    {% if ipv6_prefix_1 %}
+    ipv6: "{{ ipv6_prefix_1 }}::{{ '%x' % (node_ip_offset + number) }}"
+    {% endif %}
  disks: {{ disks }}
  pool: {{ pool }}
  {% if ceph_dev_folder is defined %}
@@ -50,6 +55,10 @@ parameters:
  files:
   - bootstrap-cluster.sh
  cmds:
+ {% if network_interfacet_type is defined and network_interfacet_type == 'ipv6' %}
+ - nmcli connection modify "Wired connection 1" ipv6.addresses "{{ ipv6_prefix_1 }}::{{ '%x' % (node_ip_offset + number) }}/64" ipv6.method manual
+ - nmcli connection up "Wired connection 1"
+ {% endif %}
  - dnf -y install python3 chrony lvm2 podman nano strace firewalld tcpdump net-tools vim
  - sed -i "s/SELINUX=enforcing/SELINUX=permissive/" /etc/selinux/config
  - setenforce 0
