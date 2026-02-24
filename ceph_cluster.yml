@@ -44,7 +44,7 @@ parameters:
     gateway: {{ ip_prefix_1 }}.1
     mask: {{ netmask }}
     dns: {{ ip_prefix_1 }}.1
-    {% if ipv6_prefix_1 %}
+    {% if ipv6_prefix_1 is defined and ipv6_prefix_1 %}
     ipv6: "{{ ipv6_prefix_1 }}::{{ '%x' % (node_ip_offset + number) }}"
     {% endif %}
  disks: {{ disks }}
