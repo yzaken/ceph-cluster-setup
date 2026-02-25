@@ -33,7 +33,7 @@ mon_ip=$(get_mon_ip)
 fsid=$(cat /etc/ceph/ceph.conf | grep fsid | awk '{ print $3}')
 {% for number in range(1, nodes) %}
   ssh-copy-id -f -i /etc/ceph/ceph.pub  -o StrictHostKeyChecking=no root@{{ node_prefix_1 }}-node-{{ '%d' % number }}
-  {% if network_interfacet_type is defined and network_interfacet_type == 'ipv6' %}
+  {% if network_interface_type is defined and network_interface_type == 'ipv6' %}
   python3 /root/bin/cephadm shell --fsid $fsid -c /etc/ceph/ceph.conf -k /etc/ceph/ceph.client.admin.keyring ceph orch host add {{ node_prefix_1 }}-node-{{ '%d' % number }} {{ ipv6_prefix_1 }}::{{ '%x' % (node_ip_offset + number) }}
   {% else %}
   python3 /root/bin/cephadm shell --fsid $fsid -c /etc/ceph/ceph.conf -k /etc/ceph/ceph.client.admin.keyring ceph orch host add {{ node_prefix_1 }}-node-{{ '%d' % number }} {{  ip_prefix_1 }}.10{{ '%d' % number }}
